@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { DM_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -21,9 +26,9 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${poppins.variable} font-poppins h-full antialiased`}
+      className={`${dmSans.variable} ${instrumentSerif.variable} font-sans h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-white text-zinc-900">{children}</body>
     </html>
   );
 }

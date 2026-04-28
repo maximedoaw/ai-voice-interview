@@ -73,35 +73,46 @@ export function useInterview(interviewId?: string) {
 
   // ── Contrôles vocaux Hume ─────────────────────────────────────────────────
   // accessToken est récupéré côté serveur via /api/hume-token puis passé ici.
-const startVoiceConversation = async (accessToken: string) => {
-  if (!interview) {
-    setError('Interview non chargée, impossible de démarrer.')
-    return
-  }
+  const startVoiceConversation = async (accessToken: string) => {
+    if (!interview) {
+      setError('Interview non chargée, impossible de démarrer.');
+      return;
+    }
 
-  const configId = process.env.NEXT_PUBLIC_HUME_CONFIG_ID
-  if (!configId) {
-    setError("NEXT_PUBLIC_HUME_CONFIG_ID est manquant dans les variables d'environnement.")
-    return
-  }
+    if (!accessToken) {
+      setError('Token d\'accès manquant.');
+      return;
+    }
 
-  await connect({
-    auth: { type: 'accessToken', value: accessToken },
-    configId,
-    sessionSettings: {
-      type: 'session_settings',            // ✅ requis par le type SessionSettings
-      variables: {
-        role: interview.role,
-        level: interview.level,
-        total_questions: String(questions.length),
-        current_question: currentQuestion?.text ?? '',
-        question_index: String(currentIndex + 1),
-      },
-    },
-  }).catch((e: any) => {
-    setError(`Connexion Hume échouée : ${e?.message ?? String(e)}`)
-  })
-}
+    try {
+      const configId = process.env.NEXT_PUBLIC_HUME_CONFIG_ID;
+      if (!configId) {
+        throw new Error("NEXT_PUBLIC_HUME_CONFIG_ID manquant.");
+      }
+
+      // NOTE: sessionSettings doit correspondre exactement au type
+      // Hume.empathicVoice.SessionSettings — pas de champ `type` à ce niveau.
+      // Le champ `variables` injecte des valeurs dans le system prompt EVI.
+      await connect({
+        auth: { type: 'accessToken', value: accessToken },
+        configId,
+        sessionSettings: {
+          type:"session_settings",
+          variables: {
+            role: interview.role,
+            level: interview.level,
+            total_questions: String(questions.length),
+            current_question: currentQuestion?.text ?? '',
+            question_index: String(currentIndex + 1),
+          },
+        },
+      });
+    } catch (e: any) {
+      const errorMsg = e?.message || (typeof e === 'object' ? JSON.stringify(e) : String(e));
+      setError(`Hume Sync Error: ${errorMsg}`);
+      console.error("[Hume] Detailed connect error:", e);
+    }
+  };
 
   const stopVoiceConversation = () => {
     disconnect()
