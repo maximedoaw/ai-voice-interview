@@ -12,10 +12,10 @@ import {
   ChevronRight, 
   ChevronLeft, 
   ArrowLeft,
-  Calendar,
   History,
   Search,
-  RotateCcw
+  RotateCcw,
+  MoreHorizontal
 } from "lucide-react"
 import { CardSkeleton } from "@/components/ui/skeleton"
 
@@ -64,104 +64,87 @@ export default function HistoryPage() {
   )
 
   return (
-    <div className="min-h-screen bg-white pb-24 font-poppins overflow-x-hidden">
-      {/* Background Grid */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.01]">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem]"></div>
-      </div>
-
-      <div className="container mx-auto max-w-5xl px-6 pt-32 relative z-10">
+    <div className="min-h-screen bg-[var(--bg-page)] pb-24 font-sans">
+      <div className="container mx-auto max-w-5xl px-6 pt-16">
         
         {/* Header Section */}
-        <div className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-           <div className="space-y-4">
-              <Link href="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase text-zinc-300 hover:text-emerald-500 tracking-[0.4em] transition-all">
-                <ArrowLeft className="w-3.5 h-3.5" /> Retour
-              </Link>
-              <h1 className="text-4xl md:text-5xl font-black text-[#1C1C1C] uppercase tracking-tighter leading-none italic">
-                 ARCHIVES <span className="text-emerald-500 tracking-normal underline decoration-emerald-100 decoration-8 underline-offset-4">LOGS.</span>
-              </h1>
-              <p className="text-zinc-400 font-bold uppercase text-[9px] tracking-[0.2em]">{interviews.length} Sessions mémorisées</p>
-           </div>
-
-           <div className="p-8 bg-zinc-50 border border-zinc-100 rounded-[2rem] flex items-center gap-6 shadow-sm">
-              <History className="w-6 h-6 text-zinc-200" />
-              <div className="h-8 w-px bg-zinc-100"></div>
-              <div className="flex gap-8">
-                 <div className="text-center">
-                    <p className="text-[8px] font-black uppercase text-zinc-300 tracking-widest mb-1">Moyenne</p>
-                    <p className="text-xl font-black text-[#1C1C1C]">72%</p>
-                 </div>
-              </div>
+        <div className="mb-10 space-y-4">
+           <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+             <ArrowLeft size={16} /> Retour
+           </Link>
+           <div>
+             <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Historique des entretiens</h1>
+             <p className="text-sm font-medium text-[var(--text-secondary)]">{interviews.length} sessions mémorisées</p>
            </div>
         </div>
 
         {/* Global Action Bar */}
-        <div className="mb-12 flex flex-col md:flex-row items-center gap-4 bg-zinc-50/50 p-2 rounded-2xl border border-zinc-100">
+        <div className="mb-6 flex flex-col sm:flex-row items-center gap-3">
            <div className="relative flex-1 w-full">
               <input 
                 type="search"
-                placeholder="RECHERCHER DANS L'HISTORIQUE..."
+                placeholder="Rechercher par poste ou niveau..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white border border-zinc-50 rounded-xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all placeholder:text-zinc-300"
+                className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors placeholder:text-[var(--text-disabled)] font-medium"
               />
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-disabled)]" />
            </div>
            
            <button 
              onClick={() => setSearch("")}
-             className="w-12 h-12 flex items-center justify-center bg-white border border-zinc-100 rounded-xl text-zinc-300 hover:text-emerald-500 transition-colors"
+             className="w-11 h-11 flex items-center justify-center bg-[var(--bg-page)] border border-[var(--border-default)] rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+             title="Réinitialiser"
            >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw size={16} />
            </button>
         </div>
 
         {/* Content List */}
         <main className="space-y-4">
            {isLoading ? (
-             <div className="space-y-4">
+             <div className="space-y-3">
                 <CardSkeleton />
                 <CardSkeleton />
                 <CardSkeleton />
              </div>
            ) : filteredInterviews.length > 0 ? (
              <>
-                <div className="space-y-3">
+                <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-page)] shadow-xs divide-y divide-[var(--border-default)]">
                    {currentInterviews.map((int) => (
                       <Link 
                         href={int.status === 'completed' ? `/review/${int.id}` : `/interview/${int.id}`}
                         key={int.id}
-                        className="flex items-center p-6 bg-white border border-zinc-50 rounded-[2rem] hover:shadow-2xl hover:shadow-emerald-500/5 transition-all group"
+                        className="flex items-center px-6 py-4 hover:bg-[var(--bg-hover)] transition-colors group"
                       >
-                         <div className="w-12 h-12 bg-zinc-50 text-emerald-400 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-emerald-400 group-hover:text-white transition-all duration-500">
-                            <Mic className="w-5 h-5" />
+                         <div className="flex-1 flex items-center gap-4">
+                           <div className="w-10 h-10 bg-[var(--bg-sidebar)] text-[var(--text-secondary)] border border-[var(--border-default)] rounded flex items-center justify-center shrink-0 group-hover:bg-[var(--accent-subtle)] group-hover:text-[var(--accent)] group-hover:border-[var(--accent-subtle)] transition-colors">
+                              <History size={16} />
+                           </div>
+
+                           <div>
+                              <h4 className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                                 {int.role}
+                              </h4>
+                              <div className="flex items-center gap-3 mt-1.5 text-xs text-[var(--text-secondary)] font-medium">
+                                 <span className={`px-2 py-0.5 rounded-sm uppercase tracking-wider text-[10px] ${int.status === 'completed' ? 'bg-[var(--success-bg)] text-[var(--success)]' : 'bg-[var(--warning-bg)] text-[var(--warning)]'}`}>
+                                   {int.status}
+                                 </span>
+                                 <span>{new Date(int.createdAt).toLocaleDateString('fr-FR')}</span>
+                              </div>
+                           </div>
                          </div>
 
-                         <div className="flex-1 px-8">
-                            <h4 className="text-xl font-black text-[#1C1C1C] uppercase tracking-tighter leading-none italic group-hover:text-emerald-500 transition-colors">
-                               {int.role}
-                            </h4>
-                            <div className="flex items-center gap-3 mt-1">
-                               <span className="text-[8px] font-black uppercase tracking-widest text-zinc-300 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100">{int.status}</span>
-                               <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest">{new Date(int.createdAt).toLocaleDateString('fr-FR')}</span>
+                         <div className="hidden sm:flex items-center gap-6 shrink-0">
+                            <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium text-xs">
+                               <TrendingUp size={14} />
+                               <span className="capitalize">{int.level}</span>
                             </div>
-                         </div>
-
-                         <div className="hidden md:flex items-center gap-12 shrink-0">
-                            <div className="flex items-center gap-2 text-zinc-300 group-hover:text-zinc-400">
-                               <Clock className="w-4 h-4" />
-                               <span className="text-[9px] font-black uppercase tracking-widest">30m</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-zinc-300 group-hover:text-zinc-400 min-w-[80px]">
-                               <TrendingUp className="w-4 h-4" />
-                               <span className="text-[9px] font-black uppercase tracking-widest">{int.level}</span>
-                            </div>
-                            <div className={`px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-widest border ${int.status === 'completed' ? 'bg-emerald-50 text-emerald-500 border-emerald-50' : 'bg-zinc-50 text-zinc-300 border-zinc-50'}`}>
+                            <div className={`w-14 text-center px-2 py-1 rounded text-xs font-semibold ${int.status === 'completed' ? 'bg-[var(--success-bg)] text-[var(--success)]' : 'bg-[var(--bg-sidebar)] text-[var(--text-disabled)]'}`}>
                                {int.score || 0}%
                             </div>
-                            <div className="w-10 h-10 flex items-center justify-center text-zinc-100 group-hover:text-emerald-500 group-hover:translate-x-2 transition-all">
-                               <ChevronRight className="w-6 h-6" />
+                            <div className="text-[var(--text-disabled)] group-hover:text-[var(--accent)] transition-colors">
+                               <ChevronRight size={18} />
                             </div>
                          </div>
                       </Link>
@@ -170,21 +153,21 @@ export default function HistoryPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                   <div className="mt-16 flex justify-center items-center gap-3">
+                   <div className="mt-8 flex justify-between items-center px-2 border-t border-[var(--border-default)] pt-4">
                       <button 
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="w-12 h-12 rounded-xl bg-white border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-emerald-500 disabled:opacity-30 transition-all font-bold"
+                        className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
                       >
-                         <ChevronLeft className="w-5 h-5" />
+                         <ChevronLeft size={16} /> Précédent
                       </button>
                       
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-1">
                          {Array.from({ length: totalPages }).map((_, i) => (
                             <button
                               key={i}
                               onClick={() => setCurrentPage(i + 1)}
-                              className={`w-12 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${currentPage === i+1 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 underline underline-offset-4' : 'bg-white border border-zinc-100 text-zinc-400 hover:text-emerald-500'}`}
+                              className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === i+1 ? 'bg-[var(--bg-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-sidebar)] hover:text-[var(--text-primary)]'}`}
                             >
                                {i + 1}
                             </button>
@@ -194,18 +177,25 @@ export default function HistoryPage() {
                       <button 
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="w-12 h-12 rounded-xl bg-white border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-emerald-500 disabled:opacity-30 transition-all font-bold"
+                        className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
                       >
-                         <ChevronRight className="w-5 h-5" />
+                         Suivant <ChevronRight size={16} />
                       </button>
                    </div>
                 )}
              </>
            ) : (
-             <div className="py-32 bg-zinc-50/20 border border-zinc-50 rounded-[3rem] text-center flex flex-col items-center justify-center gap-6">
-                <History className="w-16 h-16 text-zinc-50" />
-                <p className="text-zinc-300 font-black uppercase text-[10px] tracking-[0.5em] italic leading-none">Historique Vide_</p>
-                <Link href="/interview/new" className="px-10 py-5 bg-[#1C1C1C] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all">Lancer une Simulation</Link>
+             <div className="py-20 border border-[var(--border-default)] border-dashed rounded-lg text-center flex flex-col items-center justify-center gap-4 bg-[var(--bg-page)]">
+                <div className="w-12 h-12 rounded-full bg-[var(--bg-hover)] flex items-center justify-center text-[var(--text-disabled)]">
+                  <History size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Aucun historique</p>
+                  <p className="text-xs text-[var(--text-secondary)]">Vous n'avez pas encore passé d'entretien correspondant à cette recherche.</p>
+                </div>
+                <Link href="/interview/new" className="mt-2 px-5 py-2.5 bg-[var(--accent)] text-white rounded-md font-medium text-sm hover:bg-[var(--accent-hover)] transition-colors">
+                  Démarrer une session
+                </Link>
              </div>
            )}
         </main>

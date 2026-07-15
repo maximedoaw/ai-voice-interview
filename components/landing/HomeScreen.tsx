@@ -13,7 +13,8 @@ import {
    Mic,
    Clock,
    ChevronLeft, RotateCcw,
-   X, ArrowUpRight
+   X, ArrowUpRight,
+   AlertCircle, CheckCircle2, Lightbulb, User
 } from 'lucide-react'
 import { CardSkeleton } from '@/components/ui/skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -23,13 +24,13 @@ function ScoreRing({ score, size = 88 }: { score: number; size?: number }) {
   const sw = 7
   const r = (size - sw * 2) / 2
   const circ = 2 * Math.PI * r
-  const color = score >= 80 ? '#10B981' : score >= 60 ? '#F59E0B' : '#EF4444'
+  const color = score >= 80 ? 'var(--success)' : score >= 60 ? 'var(--warning)' : 'var(--danger)'
   const label = score >= 85 ? 'Excellent' : score >= 70 ? 'Bien' : score >= 50 ? 'Moyen' : 'À améliorer'
   return (
     <div className="flex flex-col items-center gap-2 shrink-0">
       <div className="relative" style={{ width: size, height: size }}>
         <svg className="-rotate-90" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#F3F4F6" strokeWidth={sw} />
+          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border-default)" strokeWidth={sw} />
           <motion.circle
             cx={size/2} cy={size/2} r={r} fill="none"
             stroke={color} strokeWidth={sw} strokeLinecap="round"
@@ -40,12 +41,12 @@ function ScoreRing({ score, size = 88 }: { score: number; size?: number }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-          <span className="text-2xl font-bold text-zinc-900 leading-none tabular-nums">{score}</span>
-          <span className="text-[9px] font-semibold text-zinc-400 uppercase tracking-wider">/100</span>
+          <span className="text-2xl font-bold text-[var(--text-primary)] leading-none tabular-nums">{score}</span>
+          <span className="text-[10px] font-medium text-[var(--text-disabled)] uppercase tracking-wider">/100</span>
         </div>
       </div>
-      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-        style={{ background: score >= 80 ? '#ECFDF5' : score >= 60 ? '#FFFBEB' : '#FEF2F2', color }}>
+      <span className="text-xs font-medium px-2.5 py-0.5 rounded-full"
+        style={{ background: score >= 80 ? 'var(--success-bg)' : score >= 60 ? 'var(--warning-bg)' : 'var(--danger-bg)', color }}>
         {label}
       </span>
     </div>
@@ -76,7 +77,7 @@ function InterviewSummaryDialog({
             key="bd"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[100] bg-black/30 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm"
           />
 
           {/* Panel */}
@@ -86,84 +87,82 @@ function InterviewSummaryDialog({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center sm:p-4 pointer-events-none"
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="pointer-events-auto w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl border border-zinc-200 shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="pointer-events-auto w-full max-w-xl bg-[var(--bg-page)] rounded-xl border border-[var(--border-default)] shadow-lg max-h-[90vh] flex flex-col overflow-hidden">
 
               {/* Header */}
-              <div className="flex items-start justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
+              <div className="flex items-start justify-between px-6 py-4 border-b border-[var(--border-default)] shrink-0 bg-[var(--bg-page)]">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-zinc-900 truncate">{interview?.role}</p>
-                  <p className="text-xs text-zinc-400 mt-0.5">
+                  <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{interview?.role}</p>
+                  <p className="text-xs font-medium text-[var(--text-secondary)] mt-1">
                     {interview?.level} · {formattedDate}
                   </p>
                 </div>
                 <button onClick={onClose}
-                  className="ml-3 shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors">
-                  <X size={14} />
+                  className="ml-3 shrink-0 w-8 h-8 rounded-md flex items-center justify-center text-[var(--text-disabled)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors">
+                  <X size={16} />
                 </button>
               </div>
 
               {/* Body */}
-              <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
 
                 {feedback ? (
                   <>
                     {/* Score + résumé */}
-                    <div className="flex items-start gap-4 p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <div className="flex items-start gap-5 p-5 rounded-lg bg-[var(--bg-sidebar)] border border-[var(--border-default)]">
                       <ScoreRing score={feedback.overallScore} size={84} />
                       <div className="flex-1 min-w-0 pt-1">
-                        <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Résumé</p>
-                        <p className="text-xs text-zinc-700 leading-relaxed">{feedback.summary}</p>
+                        <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Résumé</p>
+                        <p className="text-sm text-[var(--text-primary)] leading-relaxed font-medium">{feedback.summary}</p>
                       </div>
                     </div>
 
                     {/* Forces & faiblesses */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Points forts</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 size={14} className="text-[var(--success)]" />
+                          <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Points forts</p>
                         </div>
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           {(feedback.strengths ?? []).map((s, i) => (
-                            <div key={i} className="px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-[11px] text-emerald-700 leading-relaxed">{s}</div>
+                            <div key={i} className="px-4 py-3 rounded-md bg-[var(--success-bg)] border border-transparent text-xs font-medium text-[var(--success)] leading-relaxed">{s}</div>
                           ))}
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">À améliorer</p>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle size={14} className="text-[var(--warning)]" />
+                          <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">À améliorer</p>
                         </div>
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           {(feedback.weaknesses ?? []).map((w, i) => (
-                            <div key={i} className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-100 text-[11px] text-amber-700 leading-relaxed">{w}</div>
+                            <div key={i} className="px-4 py-3 rounded-md bg-[var(--warning-bg)] border border-transparent text-xs font-medium text-[var(--warning)] leading-relaxed">{w}</div>
                           ))}
                         </div>
                       </div>
                     </div>
 
                     {/* Conseil */}
-                    <div className="p-4 rounded-xl bg-white border border-zinc-200 space-y-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                        <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Conseil stratégique</p>
+                    <div className="p-5 rounded-lg bg-[var(--bg-page)] border border-[var(--border-default)] space-y-3 shadow-xs">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb size={16} className="text-[var(--accent)]" />
+                        <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Conseil stratégique</p>
                       </div>
-                      <p className="text-xs text-zinc-700 leading-relaxed">{feedback.recommendation}</p>
+                      <p className="text-sm text-[var(--text-primary)] leading-relaxed font-medium">{feedback.recommendation}</p>
                     </div>
                   </>
                 ) : (
                   // Aucun feedback disponible
-                  <div className="py-10 flex flex-col items-center gap-4 text-center">
-                    <div className="w-12 h-12 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-center">
-                      <TrendingUp size={20} className="text-zinc-300" />
+                  <div className="py-12 flex flex-col items-center gap-4 text-center">
+                    <div className="w-12 h-12 rounded-full bg-[var(--bg-hover)] border border-[var(--border-default)] flex items-center justify-center">
+                      <TrendingUp size={20} className="text-[var(--text-disabled)]" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-900 mb-1">Aucun feedback disponible</p>
-                      <p className="text-xs text-zinc-400 max-w-[220px] mx-auto leading-relaxed">
+                      <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Aucun feedback disponible</p>
+                      <p className="text-xs text-[var(--text-secondary)] max-w-[220px] mx-auto leading-relaxed">
                         Lance l’entretien pour générer une analyse Gemini.
                       </p>
                     </div>
@@ -172,30 +171,30 @@ function InterviewSummaryDialog({
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-zinc-100 bg-zinc-50/50 flex items-center justify-between gap-3 shrink-0">
+              <div className="px-6 py-4 border-t border-[var(--border-default)] bg-[var(--bg-sidebar)] flex items-center justify-between gap-3 shrink-0">
                 <button onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-zinc-600 bg-white border border-zinc-200 hover:bg-zinc-50 transition-colors">
+                  className="px-4 py-2 rounded-md text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-page)] border border-[var(--border-default)] hover:bg-[var(--bg-hover)] transition-colors">
                   Fermer
                 </button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {interview && (
                     <Link
                       href={`/review/${interview.id}`}
                       onClick={onClose}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       Voir le bilan complet
-                      <ArrowUpRight size={12} />
+                      <ArrowUpRight size={14} />
                     </Link>
                   )}
                   {interview && (
                     <Link
                       href={`/interview/${interview.id}`}
                       onClick={onClose}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium text-white bg-[var(--accent)] border border-transparent hover:bg-[var(--accent-hover)] transition-colors shadow-sm"
                     >
                       Relancer
-                      <ChevronRight size={12} />
+                      <ChevronRight size={14} />
                     </Link>
                   )}
                 </div>
@@ -265,58 +264,53 @@ export function HomeScreen() {
    const totalPages = Math.ceil(filteredInterviews.length / itemsPerPage)
 
    return (
-      <div className="min-h-screen bg-white pb-24 font-poppins overflow-x-hidden">
+      <div className="min-h-screen bg-[var(--bg-page)] pb-24 font-sans">
 
-         {/* Background Grid - Subtler */}
-         <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.01]">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem]"></div>
-         </div>
+         <div className="container mx-auto max-w-5xl px-6 pt-16">
 
-         <div className="container mx-auto max-w-5xl px-6 pt-32 relative z-10">
-
-            {/* Banner Section - Lighter Emerald Green */}
-            <div className="mb-16 p-12 bg-emerald-500 text-white rounded-[2.5rem] relative overflow-hidden shadow-3xl shadow-emerald-500/10">
-               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-white/10 -skew-y-3 translate-y-1/2 pointer-events-none"></div>
-               <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                  <div className="space-y-1">
-                     <h1 className="text-4xl font-black uppercase tracking-tighter italic leading-none">CENTRE DE <br /> PERFORMANCE.</h1>
+            {/* Banner Section */}
+            <div className="mb-10 p-8 sm:p-10 bg-[var(--bg-sidebar)] border border-[var(--border-default)] rounded-xl relative overflow-hidden shadow-xs">
+               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div className="space-y-2">
+                     <h1 className="text-2xl font-bold text-[var(--text-primary)]">Centre de <br className="hidden md:block" /> Performance</h1>
+                     <p className="text-sm font-medium text-[var(--text-secondary)]">Gérez vos sessions et suivez vos progrès.</p>
                   </div>
-                  <div className="flex gap-12 border-l border-white/20 pl-12">
-                     <div className="text-center">
-                        <p className="text-[9px] font-black uppercase opacity-60 mb-2">Total</p>
-                        <p className="text-4xl font-black tracking-tighter">{interviews.length}</p>
+                  <div className="flex gap-8 border-l border-[var(--border-default)] pl-8">
+                     <div>
+                        <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-1">Total</p>
+                        <p className="text-3xl font-bold text-[var(--text-primary)]">{interviews.length}</p>
                      </div>
-                     <div className="text-center">
-                        <p className="text-[9px] font-black uppercase opacity-60 mb-2">Moyenne</p>
-                        <p className="text-4xl font-black tracking-tighter">{averageScore}%</p>
+                     <div>
+                        <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-1">Moyenne</p>
+                        <p className="text-3xl font-bold text-[var(--text-primary)]">{averageScore}%</p>
                      </div>
                   </div>
                </div>
             </div>
 
-            {/* Action Bar (Top Positioned) */}
-            <div className="mb-16 flex flex-col md:flex-row items-center gap-4">
+            {/* Action Bar */}
+            <div className="mb-8 flex flex-col md:flex-row items-center gap-4">
                <div className="relative flex-1 w-full">
                   <input
                      type="search"
-                     placeholder="RECHERCHER..."
+                     placeholder="Rechercher une simulation..."
                      value={search}
                      onChange={(e) => setSearch(e.target.value)}
-                     className="w-full pl-12 pr-4 py-5 bg-zinc-50 border border-zinc-100 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:bg-white focus:ring-4 focus:ring-emerald-500/5 transition-all placeholder:text-zinc-300"
+                     className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-page)] border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--accent)] transition-colors placeholder:text-[var(--text-disabled)] font-medium text-[var(--text-primary)]"
                   />
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-disabled)]" />
                </div>
 
-               <div className="flex items-center gap-2 w-full md:w-auto">
-                  <Link href="/interview/new" className="flex-1 md:flex-none flex items-center justify-center gap-3 bg-[#1C1C1C] text-white px-10 py-5 rounded-2xl font-black text-[9px] uppercase tracking-widest shadow-xl hover:bg-emerald-500 transition-all active:scale-95">
-                     <Plus className="w-3.5 h-3.5" /> Nouvelle Simulation
+               <div className="flex items-center gap-3 w-full md:w-auto">
+                  <Link href="/interview/new" className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[var(--accent)] text-white px-5 py-2.5 rounded-md text-sm font-medium shadow-sm hover:bg-[var(--accent-hover)] transition-colors">
+                     <Plus size={16} /> Nouvelle Simulation
                   </Link>
                   <button
                      onClick={() => setSearch("")}
-                     className="w-14 h-14 flex items-center justify-center bg-white border border-zinc-100 rounded-2xl text-zinc-300 hover:text-emerald-500 transition-colors"
-                     title="Reset Filters"
+                     className="w-10 h-10 flex items-center justify-center bg-[var(--bg-page)] border border-[var(--border-default)] rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+                     title="Réinitialiser"
                   >
-                     <RotateCcw className="w-4 h-4" />
+                     <RotateCcw size={16} />
                   </button>
                </div>
             </div>
@@ -324,77 +318,86 @@ export function HomeScreen() {
             {/* Content List */}
             <main className="space-y-4">
                {loading ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                      <CardSkeleton />
                      <CardSkeleton />
                   </div>
                ) : (
                   <>
-                     <div className="space-y-3">
+                     <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-page)] shadow-xs divide-y divide-[var(--border-default)]">
                         {currentInterviews.length > 0 ? (
                            currentInterviews.map((interview) => (
                               <div
                                  key={interview.id}
                                  onClick={() => setSelectedInterview(interview)}
-                                 className="flex items-center p-6 bg-white border border-zinc-50 rounded-[2rem] hover:shadow-2xl hover:shadow-emerald-500/5 transition-all group cursor-pointer"
+                                 className="flex items-center p-5 hover:bg-[var(--bg-hover)] transition-colors group cursor-pointer"
                               >
-                                 <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
-                                    <Mic className="w-5 h-5" />
+                                 <div className="flex-1 flex items-center gap-4">
+                                   <div className="w-10 h-10 bg-[var(--bg-sidebar)] text-[var(--text-secondary)] border border-[var(--border-default)] rounded flex items-center justify-center shrink-0 group-hover:bg-[var(--accent-subtle)] group-hover:text-[var(--accent)] group-hover:border-[var(--accent-subtle)] transition-colors">
+                                      <Mic size={16} />
+                                   </div>
+
+                                   <div>
+                                      <h4 className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                                         {interview.role}
+                                      </h4>
+                                      <div className="flex items-center gap-3 mt-1.5 text-xs text-[var(--text-secondary)] font-medium">
+                                        <div className="flex items-center gap-1.5">
+                                           <TrendingUp size={12} />
+                                           <span className="capitalize">{interview.level}</span>
+                                        </div>
+                                      </div>
+                                   </div>
                                  </div>
 
-                                 <div className="flex-1 px-8">
-                                    <h4 className="text-xl font-black text-[#1C1C1C] uppercase tracking-tighter leading-none italic group-hover:text-emerald-500 transition-colors">
-                                       {interview.role}
-                                    </h4>
-                                 </div>
-
-                                 <div className="hidden md:flex items-center gap-12 shrink-0">
-                                    <div className="flex items-center gap-2 text-zinc-400">
-                                       <Clock className="w-3.5 h-3.5" />
-                                       <span className="text-[9px] font-black uppercase tracking-widest font-mono">30m</span>
+                                 <div className="hidden md:flex items-center gap-8 shrink-0">
+                                    <div className="flex items-center gap-1.5 text-[var(--text-secondary)] text-xs font-medium">
+                                       <Clock size={12} />
+                                       <span>30m</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-zinc-400 min-w-[80px]">
-                                       <TrendingUp className="w-3.5 h-3.5" />
-                                       <span className="text-[9px] font-black uppercase tracking-widest font-mono">{interview.level}</span>
-                                    </div>
-                                    <div className="px-6 py-2 bg-emerald-50 text-emerald-500 rounded-full text-[8px] font-black uppercase tracking-widest font-mono border border-emerald-50">
+                                    <div className={`w-14 text-center px-2 py-1 rounded text-xs font-semibold ${interview.score ? 'bg-[var(--success-bg)] text-[var(--success)]' : 'bg-[var(--bg-sidebar)] text-[var(--text-disabled)]'}`}>
                                        {interview.score || 0}%
                                     </div>
                                     <Link
                                        href={`/interview/${interview.id}`}
                                        onClick={(e) => e.stopPropagation()}
                                        title="Débuter l'interview"
-                                       className="w-10 h-10 flex items-center justify-center text-zinc-400 bg-zinc-50 rounded-full hover:text-white hover:bg-emerald-500 hover:-translate-y-1 transition-all"
+                                       className="w-8 h-8 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--accent)] bg-transparent hover:bg-[var(--accent-subtle)] rounded transition-colors"
                                     >
-                                       <ChevronRight className="w-5 h-5" />
+                                       <ChevronRight size={16} />
                                     </Link>
                                  </div>
                               </div>
                            ))
                         ) : (
-                           <div className="py-32 bg-zinc-50/20 border border-zinc-50 rounded-[3rem] text-center flex flex-col items-center justify-center gap-6">
-                              <p className="text-zinc-200 font-black uppercase text-[10px] tracking-[0.5em] italic">Aucune donnée détectée_</p>
+                           <div className="py-20 flex flex-col items-center justify-center gap-4 text-center bg-[var(--bg-page)] rounded-lg">
+                              <div className="w-12 h-12 rounded-full bg-[var(--bg-hover)] flex items-center justify-center text-[var(--text-disabled)]">
+                                <Search size={20} />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Aucune donnée</p>
+                                <p className="text-xs text-[var(--text-secondary)]">Aucun entretien ne correspond à votre recherche.</p>
+                              </div>
                            </div>
                         )}
                      </div>
 
-                     {/* PAGINATION AS REQUESTED */}
                      {totalPages > 1 && (
-                        <div className="mt-16 flex justify-center items-center gap-3">
+                        <div className="mt-8 flex justify-between items-center px-2 border-t border-[var(--border-default)] pt-4">
                            <button
                               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                               disabled={currentPage === 1}
-                              className="w-12 h-12 rounded-xl bg-white border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-emerald-500 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                              className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
                            >
-                              <ChevronLeft className="w-5 h-5" />
+                              <ChevronLeft size={16} /> Précédent
                            </button>
 
-                           <div className="flex gap-2">
+                           <div className="flex items-center gap-1">
                               {Array.from({ length: totalPages }).map((_, i) => (
                                  <button
                                     key={i}
                                     onClick={() => setCurrentPage(i + 1)}
-                                    className={`w-12 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${currentPage === i + 1 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-white border border-zinc-100 text-zinc-400 hover:text-emerald-500'}`}
+                                    className={`w-8 h-8 rounded text-sm font-medium transition-colors ${currentPage === i + 1 ? 'bg-[var(--bg-hover)] text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-sidebar)] hover:text-[var(--text-primary)]'}`}
                                  >
                                     {i + 1}
                                  </button>
@@ -404,9 +407,9 @@ export function HomeScreen() {
                            <button
                               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                               disabled={currentPage === totalPages}
-                              className="w-12 h-12 rounded-xl bg-white border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-emerald-500 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                              className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
                            >
-                              <ChevronRight className="w-5 h-5" />
+                              Suivant <ChevronRight size={16} />
                            </button>
                         </div>
                      )}
@@ -415,9 +418,9 @@ export function HomeScreen() {
             </main>
 
             {interviews.length === 0 && !loading && (
-               <div className="mt-16 text-center">
-                  <button onClick={handlePopulate} className="text-[9px] font-black uppercase text-emerald-100 hover:text-emerald-500 transition-colors tracking-widest">
-                     Populate Data
+               <div className="mt-12 text-center">
+                  <button onClick={handlePopulate} className="text-xs font-medium text-[var(--text-disabled)] hover:text-[var(--accent)] transition-colors">
+                     Générer des données de test
                   </button>
                </div>
             )}

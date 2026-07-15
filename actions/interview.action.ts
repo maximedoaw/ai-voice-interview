@@ -14,7 +14,7 @@ import {
   orderBy,
   limit
 } from 'firebase/firestore'
-import { Interview, Answer, GlobalFeedback, TranscriptEntry } from '@/types/interview'
+import { Interview, Answer, GlobalFeedback, TranscriptEntry, Question } from '@/types/interview'
 import { DUMMY_INTERVIEWS } from '@/constants'
 
 // ── Helper : convertit tous les Timestamps Firestore en ISO strings ───────────
@@ -50,10 +50,11 @@ export async function createInterview(data: {
   userId: string
   role: string
   level: 'junior' | 'mid' | 'senior'
+  questions?: Question[]
 }): Promise<string> {
   const ref = await addDoc(collection(db, 'interviews'), {
     ...data,
-    questions: [],
+    questions: data.questions || [],
     answers: [],
     status: 'pending',
     createdAt: Timestamp.now(),

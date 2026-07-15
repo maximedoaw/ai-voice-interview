@@ -1,4 +1,3 @@
-// hooks/useInterview.ts
 import { useState, useEffect, useCallback } from 'react'
 import { useVoice, VoiceReadyState } from '@humeai/voice-react'
 import {
@@ -8,52 +7,29 @@ import {
   createInterview,
 } from '@/actions/interview.action'
 import { Interview, Question } from '@/types/interview'
+import { toast } from 'sonner'
 
-export function useInterview(interviewId?: string) {
+// ── Hook pour les données de l'interview (sans Hume AI) ──────────────────
+export function useInterviewData(interviewId?: string) {
   const [interview, setInterview] = useState<Interview | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // ── Hume EVI hook ─────────────────────────────────────────────────────────
-  // useVoice() fonctionne car ce hook est toujours appelé depuis un composant
-  // enfant de <VoiceProvider> (voir page.tsx).
-  const { connect, disconnect, readyState, messages, isMuted, mute, unmute } = useVoice()
-
-  const isConnected = readyState === VoiceReadyState.OPEN
-  const isConnecting = readyState === VoiceReadyState.CONNECTING
-
-  // ── Chargement de l'interview ─────────────────────────────────────────────
   useEffect(() => {
     if (!interviewId) return
     setIsLoading(true)
     getInterviewById(interviewId)
       .then((data) => setInterview(data as unknown as Interview))
-      .catch((e) => setError(e.message))
+      .catch((e) => {
+        setError(e.message)
+        toast.error('Erreur lors du chargement de la session', { description: e.message })
+      })
       .finally(() => setIsLoading(false))
   }, [interviewId])
 
   const questions: Question[] = interview?.questions ?? []
   const currentQuestion: Question | null = questions[currentIndex] ?? null
-
-  // ── Cycle de vie de l'interview ───────────────────────────────────────────
-  const startInterview = async (config: {
-    userId: string
-    role: string
-    level: 'junior' | 'mid' | 'senior'
-  }) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const id = await createInterview(config)
-      return id
-    } catch (e: any) {
-      setError(e.message)
-      throw e
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const submitAnswer = useCallback(
     async (text: string, audioUrl?: string) => {
@@ -71,33 +47,62 @@ export function useInterview(interviewId?: string) {
     await completeInterview(interviewId)
   }, [interviewId])
 
-  // ── Contrôles vocaux Hume ─────────────────────────────────────────────────
-  // accessToken est récupéré côté serveur via /api/hume-token puis passé ici.
+  return {
+    interview,
+    currentQuestion,
+    currentIndex,
+    totalQuestions: questions.length,
+    isLoading,
+    error,
+    setError,
+    submitAnswer,
+    endInterview,
+  }
+}
+
+// ── Hook pour la voix (doit être dans VoiceProvider) ─────────────────────
+export function useInterviewVoice({
+  interview,
+  questions,
+  currentQuestion,
+  currentIndex,
+  setError,
+}: {
+  interview: Interview | null
+  questions: Question[]
+  currentQuestion: Question | null
+  currentIndex: number
+  setError: (error: string) => void
+}) {
+  const { connect, disconnect, readyState, messages, isMuted, mute, unmute } = useVoice()
+
+  const isConnected = readyState === VoiceReadyState.OPEN
+  const isConnecting = readyState === VoiceReadyState.CONNECTING
+
   const startVoiceConversation = async (accessToken: string) => {
     if (!interview) {
-      setError('Interview non chargée, impossible de démarrer.');
-      return;
+      setError('Interview non chargée, impossible de démarrer.')
+      return
     }
 
     if (!accessToken) {
-      setError('Token d\'accès manquant.');
-      return;
+      const msg = "Token d'accès manquant."
+      setError(msg)
+      toast.error(msg)
+      return
     }
 
     try {
-      const configId = process.env.NEXT_PUBLIC_HUME_CONFIG_ID;
+      const configId = process.env.NEXT_PUBLIC_HUME_CONFIG_ID
       if (!configId) {
-        throw new Error("NEXT_PUBLIC_HUME_CONFIG_ID manquant.");
+        throw new Error("NEXT_PUBLIC_HUME_CONFIG_ID manquant.")
       }
 
-      // NOTE: sessionSettings doit correspondre exactement au type
-      // Hume.empathicVoice.SessionSettings — pas de champ `type` à ce niveau.
-      // Le champ `variables` injecte des valeurs dans le system prompt EVI.
       await connect({
         auth: { type: 'accessToken', value: accessToken },
         configId,
         sessionSettings: {
-          type:"session_settings",
+          type: "session_settings",
           variables: {
             role: interview.role,
             level: interview.level,
@@ -106,13 +111,14 @@ export function useInterview(interviewId?: string) {
             question_index: String(currentIndex + 1),
           },
         },
-      });
+      })
     } catch (e: any) {
-      const errorMsg = e?.message || (typeof e === 'object' ? JSON.stringify(e) : String(e));
-      setError(`Hume Sync Error: ${errorMsg}`);
-      console.error("[Hume] Detailed connect error:", e);
+      const errorMsg = e?.message || (typeof e === 'object' ? JSON.stringify(e) : String(e))
+      setError(`Hume Sync Error: ${errorMsg}`)
+      toast.error('Erreur de connexion vocale', { description: errorMsg })
+      console.error("[Hume] Detailed connect error:", e)
     }
-  };
+  }
 
   const stopVoiceConversation = () => {
     disconnect()
@@ -123,7 +129,6 @@ export function useInterview(interviewId?: string) {
     else mute()
   }
 
-  // ── Transcription live depuis les messages Hume ───────────────────────────
   const transcript = messages
     .filter((m) => m.type === 'user_message' || m.type === 'assistant_message')
     .map((m) => ({
@@ -132,25 +137,12 @@ export function useInterview(interviewId?: string) {
     }))
 
   return {
-    interview,
-    currentQuestion,
-    currentIndex,
-    totalQuestions: questions.length,
-    isLoading,
-    error,
-
-    startInterview,
-    submitAnswer,
-    endInterview,
-
-    voice: {
-      isConnected,
-      isConnecting,
-      isMuted,
-      transcript,
-      startVoiceConversation,
-      stopVoiceConversation,
-      toggleMute,
-    },
+    isConnected,
+    isConnecting,
+    isMuted,
+    transcript,
+    startVoiceConversation,
+    stopVoiceConversation,
+    toggleMute,
   }
 }

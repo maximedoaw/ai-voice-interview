@@ -12,6 +12,24 @@ function getClient(): GoogleGenAI {
   return new GoogleGenAI({ apiKey });
 }
 
+function extractJsonPayload(raw: string): any {
+  const cleaned = (raw ?? "")
+    .replace(/```(?:json)?/gi, "")
+    .trim();
+
+  const objectMatch = cleaned.match(/\{[\s\S]*\}/);
+  const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+  const match = objectMatch && objectMatch[0].length >= (arrayMatch?.[0].length ?? 0)
+    ? objectMatch
+    : arrayMatch;
+
+  if (!match) {
+    throw new Error("Gemini n'a pas retourné de JSON valide.");
+  }
+
+  return JSON.parse(match[0]);
+}
+
 async function generateJSON(prompt: string): Promise<any> {
   const ai = getClient();
   const response = await ai.models.generateContent({
@@ -19,19 +37,59 @@ async function generateJSON(prompt: string): Promise<any> {
     contents: prompt,
   });
 
-  const raw = response.text ?? "";
-  // Extrait le premier bloc JSON valide de la réponse (ignore le texte autour)
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("Gemini n'a pas retourné de JSON valide.");
-  return JSON.parse(match[0]);
+  return extractJsonPayload(response.text ?? "");
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { role, question, answer, transcript } = body;
+    const { type, role, question, answer, transcript, level, count } = body;
 
-    // ── Cas 1 : Analyse globale après la fin de l'entretien ──────────────────
+    // ── Cas 1 : Génération de questions d'entretien via Gemini ───────────────
+    if (type === "generate-questions") {
+      const questionCount = Number(count ?? 5);
+      const prompt = `
+Tu es un expert en recrutement. Génère ${questionCount} questions d'entretien de qualité pour un candidat.
+
+POSTE VISÉ: ${role ?? "poste non spécifié"}
+NIVEAU: ${level ?? "mid"}
+
+Exigences:
+- questions concrètes, réalistes et adaptées au poste
+- mélange de questions techniques, comportementales et de motivation
+- phrasing naturel et professionnel
+- pas de questions trop génériques
+
+Réponds STRICTEMENT au format JSON suivant, sans aucun autre texte ni balise markdown:
+{
+  "questions": [
+    { "text": "Question 1", "category": "Catégorie 1" },
+    { "text": "Question 2", "category": "Catégorie 2" }
+  ]
+}
+      `.trim();
+
+      const data = await generateJSON(prompt);
+      const questions = Array.isArray(data?.questions)
+        ? data.questions
+            .filter((item: any) => typeof item?.text === "string" && item.text.trim())
+            .slice(0, questionCount)
+            .map((item: any) => ({
+              text: item.text.trim(),
+              category: typeof item.category === "string" && item.category.trim()
+                ? item.category.trim()
+                : "Général",
+            }))
+        : [];
+
+      if (questions.length === 0) {
+        throw new Error("Le modèle n'a pas retourné de questions valides.");
+      }
+
+      return NextResponse.json({ questions });
+    }
+
+    // ── Cas 2 : Analyse globale après la fin de l'entretien ──────────────────
     if (transcript && Array.isArray(transcript) && transcript.length > 0) {
       const transcriptText = transcript
         .map((m: { role: string; content: string }) =>
@@ -60,7 +118,7 @@ Réponds STRICTEMENT au format JSON suivant, sans aucun autre texte ni balise ma
       return NextResponse.json(analysis);
     }
 
-    // ── Cas 2 : Feedback instantané sur une réponse unique ───────────────────
+    // ── Cas 3 : Feedback instantané sur une réponse unique ───────────────────
     if (question && answer) {
       const prompt = `
 Tu es un expert en recrutement. Évalue cette réponse d'entretien.
@@ -84,7 +142,7 @@ Critères: pertinence, clarté, exemples concrets, professionnalisme, alignement
     }
 
     return NextResponse.json(
-      { error: "Données manquantes : fournir (question + answer) ou (transcript)." },
+      { error: "Données manquantes : fournir (question + answer), (transcript) ou une demande de génération de questions." },
       { status: 400 }
     );
   } catch (error: any) {
